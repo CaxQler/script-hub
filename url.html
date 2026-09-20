@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Script Hub - Raw Generator</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body {
+            background-color: #050505;
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow-x: hidden;
+        }
+        .dot-bg {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
+            background-image: radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+            background-size: 30px 30px;
+            mask-image: radial-gradient(circle at center, black 30%, transparent 80%);
+            -webkit-mask-image: radial-gradient(circle at center, black 30%, transparent 80%);
+        }
+        .container {
+            max-width: 650px;
+            width: 100%;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 {
+            font-size: 2.5rem; font-weight: 800; margin-bottom: 1.5rem;
+            background: linear-gradient(to right, #ffffff, #7c3aed);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            text-align: center;
+        }
+        .card {
+            background: rgba(17, 17, 17, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 1.5rem;
+            width: 100%;
+            margin-bottom: 1.5rem;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+        }
+        .form-group {
+            margin-bottom: 1rem;
+            text-align: left;
+        }
+        label { display: block; font-size: 0.9rem; color: #888; margin-bottom: 0.5rem; font-weight: 600; }
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        input[type="text"]:focus, textarea:focus {
+            border-color: #7c3aed;
+        }
+        textarea {
+            height: 120px;
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+        }
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn-primary {
+            background: #7c3aed;
+            color: #fff;
+            width: 100%;
+        }
+        .btn-primary:hover {
+            background: #6d28d9;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(124, 58, 237, 0.4);
+        }
+        .btn-cancel {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            width: 100%;
+            margin-top: 8px;
+            display: none;
+        }
+        .script-item {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 0.8rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .script-info h3 { font-size: 1.1rem; color: #fff; margin-bottom: 4px; }
+        .script-info p { font-size: 0.8rem; color: #666; font-family: monospace; }
+        .script-actions { display: flex; gap: 8px; }
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.85rem;
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+        .btn-sm:hover { background: rgba(255, 255, 255, 0.15); }
+        .btn-danger { color: #ef4444; border-color: rgba(239, 68, 68, 0.3); }
+        .btn-danger:hover { background: rgba(239, 68, 68, 0.1); }
+        .btn-edit { color: #facc15; border-color: rgba(250, 204, 21, 0.3); }
+        .btn-edit:hover { background: rgba(250, 204, 21, 0.1); }
+    </style>
+</head>
+<body>
+
+    <div class="dot-bg"></div>
+
+    <!-- หน้าหลักจัดการสคริปต์ -->
+    <div class="container" id="main-view">
+        <h1 id="form-title">My Script Creator</h1>
+
+        <div class="card">
+            <input type="hidden" id="editIndex" value="-1">
+            <div class="form-group">
+                <label>ชื่อสคริปต์ (Script Name)</label>
+                <input type="text" id="scriptName" placeholder="เช่น: Autofarm Script">
+            </div>
+            <div class="form-group">
+                <label>โค้ด Lua (Lua Script Code)</label>
+                <textarea id="scriptCode" placeholder="print('Hello World!')"></textarea>
+            </div>
+            <button class="btn btn-primary" id="submitBtn" onclick="saveScript()">+ Create Raw Script</button>
+            <button class="btn btn-cancel" id="cancelBtn" onclick="resetForm()">Cancel Edit</button>
+        </div>
+
+        <div class="card">
+            <label style="margin-bottom: 1rem;">สคริปต์ทั้งหมดของคุณ (My Scripts)</label>
+            <div id="scriptList">
+                <!-- รายการสคริปต์ -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let scripts = JSON.parse(localStorage.getItem('my_scripts')) || [];
+
+        function saveScript() {
+            const name = document.getElementById('scriptName').value.trim();
+            const code = document.getElementById('scriptCode').value.trim();
+            const editIndex = parseInt(document.getElementById('editIndex').value);
+
+            if (!name || !code) {
+                alert('กรุณากรอกชื่อและโค้ดให้ครบถ้วน!');
+                return;
+            }
+
+            if (editIndex === -1) {
+                // สร้างใหม่
+                const id = 'script_' + Math.random().toString(36.substr(2, 9));
+                scripts.push({ id, name, code });
+            } else {
+                // แก้ไขอันเดิม
+                scripts[editIndex].name = name;
+                scripts[editIndex].code = code;
+            }
+
+            localStorage.setItem('my_scripts', JSON.stringify(scripts));
+            resetForm();
+            renderScripts();
+        }
+
+        function renderScripts() {
+            const listEl = document.getElementById('scriptList');
+            if (scripts.length === 0) {
+                listEl.innerHTML = '<p style="color: #555; font-size: 0.9rem;">ยังไม่มีสคริปต์ กดสร้างด้านบนได้เลย</p>';
+                return;
+            }
+
+            listEl.innerHTML = '';
+            scripts.forEach((s, index) => {
+                const rawUrl = window.location.origin + window.location.pathname + '?raw=' + s.id;
+                
+                const item = document.createElement('div');
+                item.className = 'script-item';
+                item.innerHTML = `
+                    <div class="script-info">
+                        <h3>${s.name}</h3>
+                        <p>${rawUrl}</p>
+                    </div>
+                    <div class="script-actions">
+                        <a href="${rawUrl}" target="_blank" class="btn-sm">Raw</a>
+                        <button class="btn-sm" onclick="copyLink('${rawUrl}')">Copy</button>
+                        <button class="btn-sm btn-edit" onclick="editScript(${index})">Edit</button>
+                        <button class="btn-sm btn-danger" onclick="deleteScript('${s.id}')">Delete</button>
+                    </div>
+                `;
+                listEl.appendChild(item);
+            });
+        }
+
+        function editScript(index) {
+            const s = scripts[index];
+            document.getElementById('scriptName').value = s.name;
+            document.getElementById('scriptCode').value = s.code;
+            document.getElementById('editIndex').value = index;
+            
+            document.getElementById('form-title').innerText = "Edit Script";
+            document.getElementById('submitBtn').innerText = "Save Changes";
+            document.getElementById('cancelBtn').style.display = "block";
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function resetForm() {
+            document.getElementById('scriptName').value = '';
+            document.getElementById('scriptCode').value = '';
+            document.getElementById('editIndex').value = '-1';
+            document.getElementById('form-title').innerText = "My Script Creator";
+            document.getElementById('submitBtn').innerText = "+ Create Raw Script";
+            document.getElementById('cancelBtn').style.display = "none";
+        }
+
+        function copyLink(url) {
+            navigator.clipboard.writeText(url);
+            alert('คัดลอกลิงก์ Raw สำเร็จ!');
+        }
+
+        function deleteScript(id) {
+            scripts = scripts.filter(s => s.id !== id);
+            localStorage.setItem('my_scripts', JSON.stringify(scripts));
+            renderScripts();
+        }
+
+        // โหมดแสดงหน้า Raw แบบโค้ดดิบล้วนๆ
+        window.onload = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const rawId = urlParams.get('raw');
+
+            if (rawId) {
+                const found = scripts.find(s => s.id === rawId);
+                if (found) {
+                    // เคลียร์หน้าจอทั้งหมดให้เหลือแค่ข้อความดิบๆ สีขาวบนพื้นดำ
+                    document.body.innerHTML = `<pre style="word-wrap: break-word; white-space: pre-wrap; color: #fff; font-family: monospace; padding: 20px; font-size: 14px; background: #050505; min-height: 100vh; margin: 0;"></pre>`;
+                    document.querySelector('pre').innerText = found.code;
+                    return;
+                } else {
+                    document.body.innerHTML = `<h2 style="color: #ef4444; font-family: sans-serif; text-align: center; margin-top: 20vh;">404 - Script Not Found</h2>`;
+                    return;
+                }
+            }
+            renderScripts();
+        };
+    </script>
+</body>
+</html>
